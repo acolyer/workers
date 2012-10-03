@@ -41,7 +41,7 @@ function connectExchange() {
 		amqpConnection.queue('', function(q) {
 		  q.bind('monitoring.exchange','#');
 		  q.subscribe(function(msg) {
-			console.log(msg);
+			console.log(msg.data);
 			connection.write(msg.data);
 		  });
 		  connection.on('close', function() { q.destroy(); });
