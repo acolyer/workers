@@ -12,8 +12,8 @@
 		http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <!-- Monitor queue statistics and number of worker processes once a second and publish to stats channels -->
-    <!-- =================================================================================================== -->
+	<!-- Monitor queue statistics and number of worker processes once a second and publish to stats channels -->
+	<!-- =================================================================================================== -->
         
 	<bean id="queueMonitor" class="org.springsource.samples.workers.autoscale.QueueMonitor"
 		c:queueName="work.queue"
@@ -24,20 +24,20 @@
     
 	<int:channel id="queueStats"/>
 	
-    <int:inbound-channel-adapter ref="queueMonitor" method="getQueueStatistics" channel="queueStats">
+	<int:inbound-channel-adapter ref="queueMonitor" method="getQueueStatistics" channel="queueStats">
 		<int:poller fixed-rate="1000"/>
 	</int:inbound-channel-adapter>
 
 	<int:channel id="workerStats"/>
 
-    <int:inbound-channel-adapter ref="workerMonitor" method="getWorkerStatistics" channel="workerStats">
+	<int:inbound-channel-adapter ref="workerMonitor" method="getWorkerStatistics" channel="workerStats">
 		<int:poller fixed-rate="1000"/>
 	</int:inbound-channel-adapter>
 
-    <!-- Feed statistics into autoscaler -->
-    <!-- =================================================================================================== -->
+	<!-- Feed statistics into autoscaler -->
+	<!-- =================================================================================================== -->
 
-    <bean id="autoscaler" class="org.springsource.samples.workers.autoscale.Autoscaler"
+	<bean id="autoscaler" class="org.springsource.samples.workers.autoscale.Autoscaler"
 	   c:maxWorkers = "10"
 	   c:minWorkers = "1"
 	   c:queueHWM   = "10"
@@ -51,9 +51,9 @@
 	<int:outbound-channel-adapter channel="workerStats" ref="autoscaler" method="onWorkerStats"/>
 
 	<!-- Also publish monitoring data externally for consumption by other monitoring tools -->
-    <!-- =================================================================================================== -->
+	<!-- =================================================================================================== -->
 
-    <int:channel id="jsonWorkerStats"/>
+	<int:channel id="jsonWorkerStats"/>
 	<int:channel id="jsonQueueStats"/>
 	
 	<int:transformer input-channel="queueStats" output-channel="jsonQueueStats"
@@ -62,7 +62,7 @@
 	<int:transformer input-channel="workerStats" output-channel="jsonWorkerStats"
 		 expression="'{ workers : ' + payload + '}'"/>
 
-    <int-amqp:outbound-channel-adapter channel="jsonQueueStats"
+	<int-amqp:outbound-channel-adapter channel="jsonQueueStats"
 		amqp-template="amqpTemplate" exchange-name="monitoring.exchange" 
 		routing-key="queues.work.queue"/>
 		
@@ -70,20 +70,20 @@
 		amqp-template="amqpTemplate" exchange-name="monitoring.exchange"
 		routing-key="workers.work.queue"/>
 
-    <!-- RabbitMQ Configuration -->
-    <!-- =================================================================================================== -->
+	<!-- RabbitMQ Configuration -->
+	<!-- =================================================================================================== -->
 
-    <rabbit:connection-factory id="connectionFactory" />
-    <rabbit:admin connection-factory="connectionFactory" />
-    <rabbit:template id="amqpTemplate" connection-factory="connectionFactory" />
+	<rabbit:connection-factory id="connectionFactory" />
+	<rabbit:admin connection-factory="connectionFactory" />
+	<rabbit:template id="amqpTemplate" connection-factory="connectionFactory" />
 
-    <rabbit:queue name="work.queue" />
+	<rabbit:queue name="work.queue" />
 	<rabbit:topic-exchange name="monitoring.exchange"/>
 
-    <!-- Conditional definition of VCAP Process Manager based on profile -->
-    <!-- =================================================================================================== -->
+	<!-- Conditional definition of VCAP Process Manager based on profile -->
+	<!-- =================================================================================================== -->
 
-    <beans profile="default">
+	<beans profile="default">
 		<bean id="processManager" class="org.springsource.samples.workers.autoscale.vcap.MockProcessManager"/>
 	</beans>
 	
