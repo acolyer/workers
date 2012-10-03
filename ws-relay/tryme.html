@@ -1,0 +1,22 @@
+<html>
+  <head>
+    <title>SockJS subscription test page</title>
+    <script src="http://cdn.sockjs.org/sockjs-0.3.min.js"></script>
+  </head>
+  <body>
+
+    <script>
+	var sock = new SockJS("http://localhost:8080/socks");
+
+	sock.onmessage = function(msg) {
+		document.getElementById('message').value = msg.data;
+		alert(mgs.data);
+	};
+
+    </script>
+
+
+    <p>The latest message published to the monitoring.exchange is:</p>
+    <form><input id="message" type="text" size="80"/></form>
+  </body>
+</html>
