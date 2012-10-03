@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-amqp="http://www.springframework.org/schema/integration/amqp"
+	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/amqp http://www.springframework.org/schema/integration/amqp/spring-integration-amqp.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd
+		http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- Monitor queue statistics and number of worker processes once a second and publish to stats channels -->
+    <!-- =================================================================================================== -->
+        
+	<bean id="queueMonitor" class="org.springsource.samples.workers.autoscale.QueueMonitor"
+		c:queueName="work.queue"
+		c:template-ref="amqpTemplate"/>
+
+	<bean id="workerMonitor" class="org.springsource.samples.workers.autoscale.WorkerMonitor"
+		c:processManager-ref="processManager"/>
+    
+	<int:channel id="queueStats"/>
+	
+    <int:inbound-channel-adapter ref="queueMonitor" method="getQueueStatistics" channel="queueStats">
+		<int:poller fixed-rate="1000"/>
+	</int:inbound-channel-adapter>
+
+	<int:channel id="workerStats"/>
+
+    <int:inbound-channel-adapter ref="workerMonitor" method="getWorkerStatistics" channel="workerStats">
+		<int:poller fixed-rate="1000"/>
+	</int:inbound-channel-adapter>
+
+    <!-- Feed statistics into autoscaler -->
+    <!-- =================================================================================================== -->
+
+    <bean id="autoscaler" class="org.springsource.samples.workers.autoscale.Autoscaler"
+	   c:maxWorkers = "10"
+	   c:minWorkers = "1"
+	   c:queueHWM   = "10"
+	   c:consumerHWM = "1"
+	   c:workerDelay = "30"
+	   c:windowSize = "10"
+	   c:processManager-ref = "processManager"
+	/>
+	
+	<int:outbound-channel-adapter channel="queueStats" ref="autoscaler" method="onQueueStats"/>
+	<int:outbound-channel-adapter channel="workerStats" ref="autoscaler" method="onWorkerStats"/>
+
+	<!-- Also publish monitoring data externally for consumption by other monitoring tools -->
+    <!-- =================================================================================================== -->
+
+    <int:channel id="jsonWorkerStats"/>
+	<int:channel id="jsonQueueStats"/>
+	
+	<int:transformer input-channel="queueStats" output-channel="jsonQueueStats"
+		 expression="'{ msgs : ' + payload.size + ', consumers : ' + payload.consumers + '}'"/>
+
+	<int:transformer input-channel="workerStats" output-channel="jsonWorkerStats"
+		 expression="'{ workers : ' + payload + '}'"/>
+
+    <int-amqp:outbound-channel-adapter channel="jsonQueueStats"
+		amqp-template="amqpTemplate" exchange-name="monitoring.exchange" 
+		routing-key="queues.work.queue"/>
+		
+	<int-amqp:outbound-channel-adapter channel="jsonWorkerStats"
+		amqp-template="amqpTemplate" exchange-name="monitoring.exchange"
+		routing-key="workers.work.queue"/>
+
+    <!-- RabbitMQ Configuration -->
+    <!-- =================================================================================================== -->
+
+    <rabbit:connection-factory id="connectionFactory" />
+    <rabbit:admin connection-factory="connectionFactory" />
+    <rabbit:template id="amqpTemplate" connection-factory="connectionFactory" />
+
+    <rabbit:queue name="work.queue" />
+	<rabbit:topic-exchange name="monitoring.exchange"/>
+
+    <!-- Conditional definition of VCAP Process Manager based on profile -->
+    <!-- =================================================================================================== -->
+
+    <beans profile="default">
+		<bean id="processManager" class="org.springsource.samples.workers.autoscale.vcap.MockProcessManager"/>
+	</beans>
+	
+	<beans profile="cloud">
+		<bean id="processManager" class="org.springsource.samples.workers.autoscale.vcap.VcapProcessManager"
+	   		c:appName  = "worker-process"
+	   		c:targetUrl = "${cloud.provider.url}"
+	   		c:username = "#{systemEnvironment['CF_EMAIL']}"
+	   		c:password = "#{systemEnvironment['CF_PASSWORD']}"
+		/>		
+	</beans>
+
+</beans>
