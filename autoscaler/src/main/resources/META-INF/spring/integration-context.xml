@@ -57,10 +57,10 @@
 	<int:channel id="jsonQueueStats"/>
 	
 	<int:transformer input-channel="queueStats" output-channel="jsonQueueStats"
-		 expression="'{ msgs : ' + payload.size + ', consumers : ' + payload.consumers + '}'"/>
+		 expression="'{ &quot;msgs&quot; : ' + payload.size + ', &quot;consumers&quot; : ' + payload.consumers + '}'"/>
 
 	<int:transformer input-channel="workerStats" output-channel="jsonWorkerStats"
-		 expression="'{ workers : ' + payload + '}'"/>
+		 expression="'{ &quot;workers&quot; : ' + payload + '}'"/>
 
 	<int-amqp:outbound-channel-adapter channel="jsonQueueStats"
 		amqp-template="amqpTemplate" exchange-name="monitoring.exchange" 
