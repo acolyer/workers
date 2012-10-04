@@ -8,4 +8,6 @@ public interface ProcessManager {
 
 	public void removeWorkerProcess();
 	
+	public void scaleTo(int numWorkers);
+	
 }

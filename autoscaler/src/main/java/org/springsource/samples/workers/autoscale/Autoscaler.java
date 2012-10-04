@@ -51,6 +51,9 @@ public class Autoscaler {
 	public void onWorkerStats(int numWorkers) {
 		System.out.println("{ workers : " + numWorkers + "}");
 		this.numWorkers = numWorkers;
+		if (numWorkers < this.minWorkers) {
+			scaleTo(this.minWorkers);
+		}
 	}
 	
 	private boolean inGracePeriod() {
@@ -93,6 +96,12 @@ public class Autoscaler {
 	
 	private void scaleDown() {
 		this.processManager.removeWorkerProcess();
+		this.lastWorkerAction = System.currentTimeMillis();
+		resetCounts();
+	}
+	
+	private void scaleTo(int numWorkers) {
+		this.processManager.scaleTo(numWorkers);
 		this.lastWorkerAction = System.currentTimeMillis();
 		resetCounts();
 	}

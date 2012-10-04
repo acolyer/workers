@@ -15,7 +15,10 @@ public class MockProcessManager implements ProcessManager {
 	
 	public void removeWorkerProcess() {
 		System.out.println("Remove worker please");
-		
+	}
+	
+	public void scaleTo(int numWorkers) {
+		System.out.println("Scale to " + numWorkers + " please");
 	}
 	
 }
