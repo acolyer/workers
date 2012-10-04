@@ -21,17 +21,9 @@ sockjsServer.installHandlers(httpServer, {prefix: '[/]socks'});
 // Configure amqpContext to push messages from topic exchange
 amqpConnection.on('ready',connectExchange);
 
-// Start listening for incoming connections
-httpServer.listen(8080,'127.0.0.1');
-console.log('Ready for Action!');
-
-function httpHandler(req, res) {
-	res.writeHead(200, {'Content-Type' : 'text/plain', 'Access-Control-Allow-Origin' : '*'});
-	res.end('Hello World\n');
-}
-
 function connectExchange() {
-	console.log('Here we connect rabbitmq to the websocket...');
+	console.log("Connection to Rabbit established");
+	httpServer.listen(8080,'127.0.0.1');
 
 	// when a sockjs connection is made, create a new private queue
 	// subscribing to the monitoring.exchange, and pipe all messages
@@ -41,10 +33,16 @@ function connectExchange() {
 		amqpConnection.queue('', function(q) {
 		  q.bind('monitoring.exchange','#');
 		  q.subscribe(function(msg) {
-			console.log(msg.data);
+			console.log(msg.data.toString());
 			connection.write(msg.data);
 		  });
 		  connection.on('close', function() { q.destroy(); });
 		});
 	});
 }
+
+function httpHandler(req, res) {
+	res.writeHead(200, {'Content-Type' : 'text/plain', 'Access-Control-Allow-Origin' : '*'});
+	res.end('Hello World\n');
+}
+
