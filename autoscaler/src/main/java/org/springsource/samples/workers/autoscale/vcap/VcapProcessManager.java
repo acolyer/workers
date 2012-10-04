@@ -5,6 +5,7 @@ import org.cloudfoundry.client.lib.CloudFoundryClient;
 import org.cloudfoundry.client.lib.CloudFoundryOperations;
 import org.cloudfoundry.client.lib.CloudCredentials;
 import org.cloudfoundry.client.lib.domain.CloudApplication;
+import javax.annotation.PreDestroy;
 
 public class VcapProcessManager implements ProcessManager {
 	
@@ -16,10 +17,11 @@ public class VcapProcessManager implements ProcessManager {
 		this.cfAppName = appName;
 		CloudCredentials credentials = new CloudCredentials(username,password);
 		this.cfOps = new CloudFoundryClient(credentials,targetUrl);
+		this.cfOps.login();
 	}
 	
 	public int getNumWorkers() {
-		return this.cfOps.getApplication(this.cfAppName).getInstances();
+		return this.cfOps.getApplication(this.cfAppName).getRunningInstances();
 	}
 	
 	public void addWorkerProcess() {
@@ -32,6 +34,11 @@ public class VcapProcessManager implements ProcessManager {
 		if (currentWorkers > 0) {
 			this.cfOps.updateApplicationInstances(this.cfAppName,currentWorkers - 1);
 		}
+	}
+	
+	@PreDestroy
+	public void logout() {
+		this.cfOps.logout();
 	}
 
 }
