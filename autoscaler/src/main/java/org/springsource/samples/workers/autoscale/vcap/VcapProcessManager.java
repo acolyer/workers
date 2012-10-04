@@ -12,6 +12,7 @@ public class VcapProcessManager implements ProcessManager {
 	private final CloudFoundryOperations cfOps;
 	
 	public VcapProcessManager(String appName, URL targetUrl, String username, String password) {
+		System.out.println("VcapProcessManager connecting to " + targetUrl + " as " + username);
 		this.cfAppName = appName;
 		CloudCredentials credentials = new CloudCredentials(username,password);
 		this.cfOps = new CloudFoundryClient(credentials,targetUrl);

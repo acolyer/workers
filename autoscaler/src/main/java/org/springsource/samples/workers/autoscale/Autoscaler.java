@@ -39,8 +39,6 @@ public class Autoscaler {
 			sampleQueueSize(stats.size);
 			sampleConsumers(stats.consumers);
 
-			System.out.println("Cons queue samples: " + this.consecutiveQueueHWMSamples);
-			
 			if (moreWorkersRequired()) {
 				scaleUp();
 			}

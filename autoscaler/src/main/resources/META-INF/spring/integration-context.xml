@@ -5,12 +5,14 @@
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-amqp="http://www.springframework.org/schema/integration/amqp"
 	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
-	xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
+	xmlns:cloud="http://schema.cloudfoundry.org/spring"
+	xmlns:context="http://www.springframework.org/schema/context"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration/amqp http://www.springframework.org/schema/integration/amqp/spring-integration-amqp.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd
 		http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://schema.cloudfoundry.org/spring http://schema.cloudfoundry.org/spring/cloudfoundry-spring-0.8.xsd">
 
 	<!-- Monitor queue statistics and number of worker processes once a second and publish to stats channels -->
 	<!-- =================================================================================================== -->
@@ -73,27 +75,38 @@
 	<!-- RabbitMQ Configuration -->
 	<!-- =================================================================================================== -->
 
-	<rabbit:connection-factory id="connectionFactory" />
 	<rabbit:admin connection-factory="connectionFactory" />
 	<rabbit:template id="amqpTemplate" connection-factory="connectionFactory" />
 
 	<rabbit:queue name="work.queue" />
 	<rabbit:topic-exchange name="monitoring.exchange"/>
 
-	<!-- Conditional definition of VCAP Process Manager based on profile -->
+	<!-- Conditional definition of VCAP Process Manager & Broker based on profile -->
 	<!-- =================================================================================================== -->
 
 	<beans profile="default">
+		
+		<rabbit:connection-factory id="connectionFactory" />
+	
 		<bean id="processManager" class="org.springsource.samples.workers.autoscale.vcap.MockProcessManager"/>
+	
 	</beans>
 	
 	<beans profile="cloud">
+		
+		<cloud:rabbit-connection-factory id="connectionFactory"/>
+		
+		<cloud:properties id="cfProps"/>
+		
+		<context:property-placeholder properties-ref="cfProps"/>
+		
 		<bean id="processManager" class="org.springsource.samples.workers.autoscale.vcap.VcapProcessManager"
 	   		c:appName  = "worker-process"
 	   		c:targetUrl = "${cloud.provider.url}"
 	   		c:username = "#{systemEnvironment['CF_EMAIL']}"
 	   		c:password = "#{systemEnvironment['CF_PASSWORD']}"
-		/>		
+		/>
+				
 	</beans>
 
 </beans>
