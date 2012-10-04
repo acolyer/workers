@@ -1,0 +1,371 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Worker Automated Scaling Monitor</title>
+		<!-- Le styles -->
+	    <link href="assets/css/bootstrap.css" rel="stylesheet">
+	    <style>
+	      body {
+	        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+	      }
+	    </style>
+	    <link href="assets/css/bootstrap-responsive.css" rel="stylesheet">
+
+	    <script src="http://cdn.sockjs.org/sockjs-0.3.min.js"></script>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+		<script type="text/javascript">
+
+var msgChart;
+var consumerChart;
+var workerChart;
+
+$(function () {
+	
+    msgChart = new Highcharts.Chart({
+	
+	    chart: {
+	        renderTo: 'msgGauge',
+	        type: 'gauge',
+	        plotBackgroundColor: null,
+	        plotBackgroundImage: null,
+	        plotBorderWidth: 0,
+	        plotShadow: false
+	    },
+	    
+	    title: {
+	        text: 'Messages'
+	    },
+	    
+	    pane: {
+	        startAngle: -120,
+	        endAngle: 120,
+	        background: [{
+	            backgroundColor: {
+	                linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+	                stops: [
+	                    [0, '#FFF'],
+	                    [1, '#333']
+	                ]
+	            },
+	            borderWidth: 0,
+	            outerRadius: '109%'
+	        }, {
+	            backgroundColor: {
+	                linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+	                stops: [
+	                    [0, '#333'],
+	                    [1, '#FFF']
+	                ]
+	            },
+	            borderWidth: 1,
+	            outerRadius: '107%'
+	        }, {
+	            // default background
+	        }, {
+	            backgroundColor: '#DDD',
+	            borderWidth: 0,
+	            outerRadius: '105%',
+	            innerRadius: '103%'
+	        }]
+	    },
+	       
+	    // the value axis
+	    yAxis: {
+	        min: 0,
+	        max: 100,
+	        
+	        minorTickInterval: 'auto',
+	        minorTickWidth: 1,
+	        minorTickLength: 10,
+	        minorTickPosition: 'inside',
+	        minorTickColor: '#666',
+	
+	        tickPixelInterval: 30,
+	        tickWidth: 2,
+	        tickPosition: 'inside',
+	        tickLength: 10,
+	        tickColor: '#666',
+	        labels: {
+	            step: 2,
+	            rotation: 'auto'
+	        },
+	        title: {
+	            text: '# msgs'
+	        },
+	        plotBands: [{
+	            from: 0,
+	            to: 10,
+	            color: '#55BF3B' // green
+	        }, {
+	            from: 10,
+	            to: 30,
+	            color: '#DDDF0D' // yellow
+	        }, {
+	            from: 30,
+	            to: 100,
+	            color: '#DF5353' // red
+	        }]        
+	    },
+	
+	    series: [{
+	        name: '# msgs',
+	        data: [0],
+	    }]
+	
+	});
+});
+
+$(function () {
+	
+    consumerChart = new Highcharts.Chart({
+	
+	    chart: {
+	        renderTo: 'consumerGauge',
+	        type: 'gauge',
+	        plotBackgroundColor: null,
+	        plotBackgroundImage: null,
+	        plotBorderWidth: 0,
+	        plotShadow: false
+	    },
+	    
+	    title: {
+	        text: 'Consumers'
+	    },
+	    
+	    pane: {
+	        startAngle: -120,
+	        endAngle: 120,
+	        background: [{
+	            backgroundColor: {
+	                linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+	                stops: [
+	                    [0, '#FFF'],
+	                    [1, '#333']
+	                ]
+	            },
+	            borderWidth: 0,
+	            outerRadius: '109%'
+	        }, {
+	            backgroundColor: {
+	                linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+	                stops: [
+	                    [0, '#333'],
+	                    [1, '#FFF']
+	                ]
+	            },
+	            borderWidth: 1,
+	            outerRadius: '107%'
+	        }, {
+	            // default background
+	        }, {
+	            backgroundColor: '#DDD',
+	            borderWidth: 0,
+	            outerRadius: '105%',
+	            innerRadius: '103%'
+	        }]
+	    },
+	       
+	    // the value axis
+	    yAxis: {
+	        min: 0,
+	        max: 10,
+	        
+	        minorTickInterval: 'auto',
+	        minorTickWidth: 1,
+	        minorTickLength: 10,
+	        minorTickPosition: 'inside',
+	        minorTickColor: '#666',
+	
+	        tickPixelInterval: 30,
+	        tickWidth: 2,
+	        tickPosition: 'inside',
+	        tickLength: 10,
+	        tickColor: '#666',
+	        labels: {
+	            step: 2,
+	            rotation: 'auto'
+	        },
+	        title: {
+	            text: '# consumers'
+	        },
+	        plotBands: [{
+	            from: 0,
+	            to: 5,
+	            color: '#55BF3B' // green
+	        }, {
+	            from: 5,
+	            to: 8,
+	            color: '#DDDF0D' // yellow
+	        }, {
+	            from: 8,
+	            to: 10,
+	            color: '#DF5353' // red
+	        }]        
+	    },
+	
+	    series: [{
+	        name: '# consumers',
+	        data: [0],
+	    }]
+	
+	});
+});
+
+$(function () {
+	
+    workerChart = new Highcharts.Chart({
+	
+	    chart: {
+	        renderTo: 'workersGauge',
+	        type: 'gauge',
+	        plotBackgroundColor: null,
+	        plotBackgroundImage: null,
+	        plotBorderWidth: 0,
+	        plotShadow: false
+	    },
+	    
+	    title: {
+	        text: 'Workers'
+	    },
+	    
+	    pane: {
+	        startAngle: -120,
+	        endAngle: 120,
+	        background: [{
+	            backgroundColor: {
+	                linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+	                stops: [
+	                    [0, '#FFF'],
+	                    [1, '#333']
+	                ]
+	            },
+	            borderWidth: 0,
+	            outerRadius: '109%'
+	        }, {
+	            backgroundColor: {
+	                linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+	                stops: [
+	                    [0, '#333'],
+	                    [1, '#FFF']
+	                ]
+	            },
+	            borderWidth: 1,
+	            outerRadius: '107%'
+	        }, {
+	            // default background
+	        }, {
+	            backgroundColor: '#DDD',
+	            borderWidth: 0,
+	            outerRadius: '105%',
+	            innerRadius: '103%'
+	        }]
+	    },
+	       
+	    // the value axis
+	    yAxis: {
+	        min: 0,
+	        max: 10,
+	        
+	        minorTickInterval: 'auto',
+	        minorTickWidth: 1,
+	        minorTickLength: 10,
+	        minorTickPosition: 'inside',
+	        minorTickColor: '#666',
+	
+	        tickPixelInterval: 30,
+	        tickWidth: 2,
+	        tickPosition: 'inside',
+	        tickLength: 10,
+	        tickColor: '#666',
+	        labels: {
+	            step: 2,
+	            rotation: 'auto'
+	        },
+	        title: {
+	            text: '# processes'
+	        },
+	        plotBands: [{
+	            from: 0,
+	            to: 5,
+	            color: '#55BF3B' // green
+	        }, {
+	            from: 5,
+	            to: 8,
+	            color: '#DDDF0D' // yellow
+	        }, {
+	            from: 8,
+	            to: 10,
+	            color: '#DF5353' // red
+	        }]        
+	    },
+	
+	    series: [{
+	        name: '# processes',
+	        data: [0],
+	    }]
+	
+	});
+});
+
+$(function() { 
+
+	var sock = new SockJS("http://localhost:8080/socks");
+
+	sock.onmessage = function(msg) {
+	   var msgData = $.parseJSON(msg.data);
+	   if (!(typeof msgData.workers === "undefined")) { 
+		   document.getElementById('workersCount').innerHTML = msgData.workers;
+		   workerChart.series[0].points[0].update(msgData.workers);
+	   }
+	   if (!(typeof msgData.msgs === "undefined")) {
+		   document.getElementById('msgCount').innerHTML = msgData.msgs;
+		   msgChart.series[0].points[0].update(msgData.msgs);
+  	   }
+	   if (!(typeof msgData.consumers === "undefined")) {
+		   document.getElementById('consumerCount').innerHTML = msgData.consumers;
+		   consumerChart.series[0].points[0].update(msgData.consumers);
+  	   }
+	};
+	
+});
+
+		</script>
+	</head>
+	<body>
+		<div class="navbar navbar-inverse navbar-fixed-top">
+	      <div class="navbar-inner">
+	        <div class="container">
+	          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+	            <span class="icon-bar"></span>
+	            <span class="icon-bar"></span>
+	            <span class="icon-bar"></span>
+	          </a>
+	          <a class="brand" href="#">Worker Monitoring Dashboard</a>
+	        </div>
+	      </div>
+	    </div>
+
+		<div class="row">
+			<div class="span4" id="msgGauge" style="width: 33%; height: 300px; margin: 0 auto"></div>
+			<div class="span4" id="consumerGauge" style="width: 33%; height: 300px; margin: 0 auto"></div>
+			<div class="span4" id="workersGauge" style="width: 33%; height: 300px; margin: 0 auto"></div>
+		</div>
+		<div class="row">
+			<div class="span4"style="width: 33%; height: 300px; margin: 0 auto">
+				<h1 id="msgCount" align="center">-</h1>
+			</div>
+			<div class="span4" style="width: 33%; height: 300px; margin: 0 auto">
+				<h1 id="consumerCount" align="center">-</h1>
+			</div>
+			<div class="span4" style="width: 33%; height: 300px; margin: 0 auto">
+				<h1 id="workersCount" align="center">-</h1>
+			</div>
+		</div>
+				   
+		<script src="assets/js/highcharts.js"></script>
+		<script src="assets/js/highcharts-more.js"></script>
+		<script src="assets/js/modules/exporting.js"></script>
+		
+	</body>
+</html>
