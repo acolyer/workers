@@ -1,0 +1,9 @@
+---
+applications:
+  .:
+    name: worker-monitor
+    framework: node
+    runtime: node06
+    memory: 64M
+    instances: 1
+    url: worker-monitor.${target-base}
