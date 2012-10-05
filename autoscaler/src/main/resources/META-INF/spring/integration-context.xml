@@ -96,24 +96,9 @@
 		
 		<cloud:rabbit-connection-factory id="connectionFactory"/>
 		
-		<!-- waiting on resolution of cloud:properties NPE...
-		
-		<cloud:properties id="cfProps"/>
-		
-		<context:property-placeholder properties-ref="cfProps"/>
-		
 		<bean id="processManager" class="org.springsource.samples.workers.autoscale.vcap.VcapProcessManager"
 	   		c:appName  = "worker-process"
-	   		c:targetUrl = "${cloud.provider.url}"
-	   		c:username = "#{systemEnvironment['CF_EMAIL']}"
-	   		c:password = "#{systemEnvironment['CF_PASSWORD']}"
-		/>
-		
-		-->
-
-		<bean id="processManager" class="org.springsource.samples.workers.autoscale.vcap.VcapProcessManager"
-	   		c:appName  = "worker-process"
-	   		c:targetUrl = "http://api.cloudfoundry.com"
+	   		c:targetUrl = "#{systemEnvironment['CF_TARGET']}"
 	   		c:username = "#{systemEnvironment['CF_EMAIL']}"
 	   		c:password = "#{systemEnvironment['CF_PASSWORD']}"
 		/>
