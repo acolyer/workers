@@ -9,7 +9,7 @@ which is free for non-commercial use. After cloning the repo you will need
 to download highcharts and copy the contents of the 'js' folder in the
 distribution to the 'client/assets/js/highcharts' directory in this project.
 
-The app has been tested with [Highcharts-2.3.2](http://download-link).
+The app has been tested with Highcharts-2.3.2.
 
 This is a quick 'hack' page to get something up in the browser. Not to be
 treated as an example of a well-structured client-side app!!
