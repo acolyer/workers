@@ -42,7 +42,7 @@ function connectExchange() {
 }
 
 function httpHandler(req, res) {
-	res.writeHead(200, {'Content-Type' : 'text/plain', 'Access-Control-Allow-Origin' : '*'});
+	res.writeHead(200, {'Content-Type' : 'text/plain'});
 	res.end('Hello World\n');
 }
 
