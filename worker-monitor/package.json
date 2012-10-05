@@ -1,0 +1,10 @@
+{
+  "name": "worker-monitor",
+  "description": "Dashboard for monitoring workers and work queue",
+  "homepage": "http://worker-monitor.p02.rbconsvcs.com",
+  "version": "0.1.0",
+  "keywords": [],
+  "dependencies": {
+    "express": ""
+  }
+}
