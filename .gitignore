@@ -3,3 +3,8 @@ gradle.properties
 **/.gradle
 node_modules
 *~
+# Eclipse related...
+.settings
+.classpath
+.project
+bin
