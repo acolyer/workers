@@ -1,8 +1,5 @@
 package org.springsource.samples.workers.producer;
 
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.integration.annotation.Publisher;
-
 public class MessageProducer {
 	
 	private int messageCounter = 0;
