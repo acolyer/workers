@@ -6,5 +6,8 @@
   "keywords": [],
   "dependencies": {
     "express": ""
+  },
+  "scripts": {
+    "start": "node server/main.js"
   }
 }
